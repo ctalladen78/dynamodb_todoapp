@@ -7,6 +7,7 @@ import (
   "net/http"
   "os"
   "regexp"
+  // "time"
 
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -14,23 +15,18 @@ import (
 
   "github.com/aws/aws-lambda-go/events"
   "github.com/aws/aws-lambda-go/lambda"
+
+  "model"
 )
 
-var ( 
-  isbnRegexp = regexp.MustCompile(`[0-9]{3}\-[0-9]{10}`)
-  errorLogger = log.New(os.Stderr, "ERROR", log.Llongfile)
-  svc = dynamodb.New(session.New(), aws.NewConfig().WithRegion("us-east-1")
-  db = &Store{
-    Db: svc
-  }
-)
-
-type book struct {
-  ISBN  string `json:"isbn"`
-}
-
-func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
-error) {
+/**
+router.GET("/user", GetUser)
+router.GET("/userlist", GetAllUsers)
+router.GET("/query", QueryUser)
+router.POST("/user", PutUser)
+router.POST("/user/edit", UpdateUser)
+**/
+func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,error) {
   switch req.HTTPMethod {
     case "GET":
       return show(req)
@@ -41,8 +37,7 @@ error) {
   }
 }
 
-func show(req events.APIGatewayProxyRequest)(events.APIGatewayProxyResponse,
-error){
+func show(req events.APIGatewayProxyRequest)(events.APIGatewayProxyResponse, error){
   isbn := req.QueryStringParameters["isbn"]
   if !isbnRegexp.MatchString(isbn){
     return clientError(http.StatusBadRequest)
@@ -102,3 +97,4 @@ func clientError(err error) (events.APIGatewayProxyResponse, error) {
 func main(){
   lambda.Start(router)
 }
+
